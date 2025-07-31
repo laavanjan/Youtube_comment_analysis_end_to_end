@@ -125,12 +125,39 @@ This project analyzes Reddit comments for sentiment classification using natural
 
 ---
 
+
+## 6. 6_experiment_5_xgboost_with_hpt.ipynb
+
+**Purpose:**
+- Compare multiple machine learning algorithms for sentiment classification, including XGBoost, Logistic Regression, SVM, LightGBM, KNN, Naive Bayes, and Random Forest.
+- Use Optuna for hyperparameter tuning of XGBoost to optimize model performance.
+- Address class imbalance using SMOTE.
+- Track all experiments using MLflow.
+
+**Key Steps:**
+- Loads the preprocessed dataset.
+- Remaps class labels for compatibility with XGBoost.
+- Splits data into training and test sets.
+- Vectorizes text using TF-IDF with trigrams and a fixed max_features value.
+- Applies SMOTE to balance the training data.
+- Defines a logging function to record model parameters, metrics, and artifacts in MLflow.
+- Compares several algorithms by training and evaluating each, logging results to MLflow.
+- Uses Optuna to tune XGBoost hyperparameters (n_estimators, learning_rate, max_depth), selects the best model, and logs it.
+
+**Outcome:**
+- Provides a comprehensive comparison of popular ML algorithms for sentiment analysis.
+- Identifies the best-performing model and hyperparameters for the task.
+- Demonstrates the use of automated hyperparameter optimization and experiment tracking.
+
+---
+
 ## How to Use
 1. Run `1_Preprocessing_&_EDA.ipynb` to explore and preprocess the data.
 2. Run `2_experiment_1_baseline_model.ipynb` to train and evaluate the baseline model, and log results to MLflow.
 3. Run `3_experiment_2_bow_vs_tfidf.ipynb` to compare BoW and TF-IDF vectorization methods and analyze their impact on model performance.
 4. Run `4_experiment_3_tfidf_(1,3)_max_features.ipynb` to experiment with different max_features settings for TF-IDF trigrams and optimize feature selection.
 5. Run `5_experiment_4_handling_imbalanced_data.ipynb` to explore and compare different techniques for handling class imbalance in the dataset.
+6. Run `6_experiment_5_xgboost_with_hpt.ipynb` to compare ML algorithms and tune XGBoost with Optuna for best performance.
 
 ---
 
