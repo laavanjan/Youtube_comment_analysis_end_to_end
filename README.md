@@ -151,6 +151,51 @@ This project analyzes Reddit comments for sentiment classification using natural
 
 ---
 
+
+## 7. 7_experiment_6_lightgbm_detailed_hpt.ipynb
+
+**Purpose:**
+- Perform detailed hyperparameter tuning for LightGBM using Optuna to maximize sentiment classification performance.
+- Address class imbalance using SMOTE.
+- Track all experiments and hyperparameter trials using MLflow.
+
+**Key Steps:**
+- Loads the preprocessed dataset and remaps class labels for compatibility.
+- Vectorizes text using TF-IDF with trigrams and a fixed max_features value.
+- Applies SMOTE to balance the dataset.
+- Splits the data into training and test sets after resampling.
+- Defines a logging function to record model parameters, metrics, and artifacts in MLflow for each Optuna trial.
+- Uses Optuna to search a wide hyperparameter space for LightGBM (n_estimators, learning_rate, max_depth, num_leaves, min_child_samples, colsample_bytree, subsample, reg_alpha, reg_lambda).
+- Logs each trial and the best model to MLflow, and visualizes parameter importance and optimization history.
+
+**Outcome:**
+- Identifies the best hyperparameters for LightGBM on this sentiment analysis task.
+- Demonstrates advanced experiment tracking and hyperparameter optimization workflows.
+
+---
+
+
+## 8. 8_stacking.ipynb
+
+**Purpose:**
+- Implement a stacking ensemble model for sentiment classification using LightGBM and Logistic Regression as base learners, and KNN as the meta-learner.
+- Compare the performance of the stacking model with individual models.
+
+**Key Steps:**
+- Loads the preprocessed dataset and drops rows with missing values.
+- Vectorizes text using TF-IDF with trigrams and a fixed max_features value.
+- Splits the data into training and test sets.
+- Defines LightGBM and Logistic Regression as base models, and KNN as the meta-learner.
+- Constructs a StackingClassifier with 5-fold cross-validation.
+- Trains the stacking model and evaluates its performance on the test set.
+- Compares the stacking model's results to those of the LightGBM model alone.
+
+**Outcome:**
+- Demonstrates the use of ensemble learning to potentially improve sentiment classification performance.
+- Provides insight into the complexity and benefits of stacking versus single-model approaches.
+
+---
+
 ## How to Use
 1. Run `1_Preprocessing_&_EDA.ipynb` to explore and preprocess the data.
 2. Run `2_experiment_1_baseline_model.ipynb` to train and evaluate the baseline model, and log results to MLflow.
@@ -158,6 +203,8 @@ This project analyzes Reddit comments for sentiment classification using natural
 4. Run `4_experiment_3_tfidf_(1,3)_max_features.ipynb` to experiment with different max_features settings for TF-IDF trigrams and optimize feature selection.
 5. Run `5_experiment_4_handling_imbalanced_data.ipynb` to explore and compare different techniques for handling class imbalance in the dataset.
 6. Run `6_experiment_5_xgboost_with_hpt.ipynb` to compare ML algorithms and tune XGBoost with Optuna for best performance.
+7. Run `7_experiment_6_lightgbm_detailed_hpt.ipynb` to perform detailed hyperparameter tuning for LightGBM with Optuna and MLflow.
+8. Run `8_stacking.ipynb` to experiment with stacking ensemble models for sentiment classification.
 
 ---
 
