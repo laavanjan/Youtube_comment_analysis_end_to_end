@@ -70,10 +70,36 @@ This project analyzes Reddit comments for sentiment classification using natural
 
 ---
 
+
+## 4. 4_experiment_3_tfidf_(1,3)_max_features.ipynb
+
+**Purpose:**
+- Investigate the effect of varying the `max_features` parameter in TF-IDF vectorization (with trigrams) on sentiment classification performance.
+- Identify the optimal number of features for the best model accuracy.
+- Track all experiments using MLflow.
+
+**Key Steps:**
+- Loads the preprocessed dataset.
+- Configures MLflow for experiment tracking.
+- Defines an experiment function to:
+  - Vectorize text using TF-IDF with ngram_range=(1,3) and different max_features values.
+  - Split data into training and test sets.
+  - Train a Random Forest classifier.
+  - Log parameters, metrics (accuracy, classification report), confusion matrix plots, and models to MLflow.
+- Iterates over a range of max_features values (e.g., 1000 to 10000) to compare results.
+- Analyzes how feature dimensionality impacts model performance.
+
+**Outcome:**
+- Provides insight into the trade-off between feature size and classification accuracy.
+- Helps select the best max_features value for TF-IDF-based sentiment models.
+
+---
+
 ## How to Use
 1. Run `1_Preprocessing_&_EDA.ipynb` to explore and preprocess the data.
 2. Run `2_experiment_1_baseline_model.ipynb` to train and evaluate the baseline model, and log results to MLflow.
 3. Run `3_experiment_2_bow_vs_tfidf.ipynb` to compare BoW and TF-IDF vectorization methods and analyze their impact on model performance.
+4. Run `4_experiment_3_tfidf_(1,3)_max_features.ipynb` to experiment with different max_features settings for TF-IDF trigrams and optimize feature selection.
 
 ---
 
