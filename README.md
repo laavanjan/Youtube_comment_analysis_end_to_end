@@ -1,6 +1,7 @@
 # YouTube Comment Sentiment Analysis: Project Overview
 
-This project analyzes Reddit comments for sentiment classification using natural language processing (NLP) and machine learning techniques. The workflow is organized into two main Jupyter notebooks:
+
+This project analyzes Reddit comments for sentiment classification using natural language processing (NLP) and machine learning techniques. The workflow is organized into three main Jupyter notebooks:
 
 ## 1. 1_Preprocessing_&_EDA.ipynb
 
@@ -44,9 +45,35 @@ This project analyzes Reddit comments for sentiment classification using natural
 
 ---
 
+
+## 3. 3_experiment_2_bow_vs_tfidf.ipynb
+
+**Purpose:**
+- Compare the performance of Bag of Words (BoW) and TF-IDF vectorization techniques for sentiment classification.
+- Evaluate the impact of different n-gram ranges (unigrams, bigrams, trigrams) on model performance.
+- Track all experiments using MLflow.
+
+**Key Steps:**
+- Loads the preprocessed dataset.
+- Configures MLflow for experiment tracking.
+- Defines a reusable experiment function to:
+  - Vectorize text using either BoW or TF-IDF with specified n-gram ranges and feature limits.
+  - Split data into training and test sets.
+  - Train a Random Forest classifier.
+  - Log parameters, metrics (accuracy, classification report), confusion matrix plots, and models to MLflow.
+- Runs experiments for both BoW and TF-IDF with n-gram ranges of (1,1), (1,2), and (1,3).
+- Compares results to determine which vectorization method and n-gram configuration performs best.
+
+**Outcome:**
+- Provides a systematic comparison of feature engineering strategies for text classification.
+- Helps identify the optimal vectorization approach for sentiment analysis on this dataset.
+
+---
+
 ## How to Use
 1. Run `1_Preprocessing_&_EDA.ipynb` to explore and preprocess the data.
 2. Run `2_experiment_1_baseline_model.ipynb` to train and evaluate the baseline model, and log results to MLflow.
+3. Run `3_experiment_2_bow_vs_tfidf.ipynb` to compare BoW and TF-IDF vectorization methods and analyze their impact on model performance.
 
 ---
 
