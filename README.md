@@ -95,11 +95,42 @@ This project analyzes Reddit comments for sentiment classification using natural
 
 ---
 
+
+## 5. 5_experiment_4_handling_imbalanced_data.ipynb
+
+**Purpose:**
+- Address class imbalance in the sentiment dataset using various resampling and class weighting techniques.
+- Evaluate the impact of different imbalance handling methods on model performance.
+- Track all experiments using MLflow.
+
+**Key Steps:**
+- Loads the preprocessed dataset.
+- Configures MLflow for experiment tracking.
+- Defines an experiment function to:
+  - Vectorize text using TF-IDF with ngram_range=(1,3) and a fixed max_features value.
+  - Split data into training and test sets.
+  - Apply different imbalance handling strategies to the training set:
+    - Class weighting in Random Forest
+    - SMOTE (oversampling)
+    - ADASYN (oversampling)
+    - Random undersampling
+    - SMOTEENN (combined over- and under-sampling)
+  - Train a Random Forest classifier.
+  - Log parameters, metrics (accuracy, classification report), confusion matrix plots, and models to MLflow.
+- Compares the results of each imbalance handling method.
+
+**Outcome:**
+- Provides insight into the effectiveness of different strategies for handling imbalanced data in sentiment classification.
+- Helps select the best approach for improving model performance on minority classes.
+
+---
+
 ## How to Use
 1. Run `1_Preprocessing_&_EDA.ipynb` to explore and preprocess the data.
 2. Run `2_experiment_1_baseline_model.ipynb` to train and evaluate the baseline model, and log results to MLflow.
 3. Run `3_experiment_2_bow_vs_tfidf.ipynb` to compare BoW and TF-IDF vectorization methods and analyze their impact on model performance.
 4. Run `4_experiment_3_tfidf_(1,3)_max_features.ipynb` to experiment with different max_features settings for TF-IDF trigrams and optimize feature selection.
+5. Run `5_experiment_4_handling_imbalanced_data.ipynb` to explore and compare different techniques for handling class imbalance in the dataset.
 
 ---
 
