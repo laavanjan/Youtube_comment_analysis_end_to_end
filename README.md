@@ -25,7 +25,11 @@ This project analyzes YouTube (and Reddit) comments for sentiment classification
 ### Chrome Extension Frontend (`yt-chrome-plugin-frontend/`)
 - Contains `manifest.json`, `popup.html`, and `popup.js` for a Chrome extension UI.
 - Allows users to interact with the Flask API directly from YouTube.
-- See the folder for implementation details.
+- UI is now a modern, light theme with color-coded sentiment cards (green for Positive, yellow for Neutral, red for Negative).
+- Comments are displayed in clean, minimalist cards with timestamps and sentiment labels.
+- Metrics and charts are shown in a visually appealing layout.
+- Permissions in `manifest.json` include both `http://localhost/*` and `http://127.0.0.1/*` for local API access.
+- See the folder for implementation details and customization options.
 ---
 ---
 
