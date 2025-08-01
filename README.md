@@ -1,7 +1,48 @@
+
 # YouTube Comment Sentiment Analysis: Project Overview
 
 
-This project analyzes Reddit comments for sentiment classification using natural language processing (NLP) and machine learning techniques. The workflow is organized into three main Jupyter notebooks:
+This project analyzes YouTube (and Reddit) comments for sentiment classification using natural language processing (NLP) and machine learning techniques. The workflow includes Jupyter notebooks for data science, a Flask API for model serving, and a Chrome extension frontend.
+---
+
+## API & Frontend Components
+
+### Flask API (`flask_api/main.py`)
+- Provides REST endpoints for sentiment prediction.
+- Loads the trained model from MLflow Model Registry and a local TF-IDF vectorizer.
+- Endpoints:
+  - `/predict` (POST): Predicts sentiment for a list of comments.
+  - `/predict_with_timestamps` (POST): Predicts sentiment for comments with timestamps.
+  - `/generate_chart` (POST): Generates charts (details in code).
+- Example request to `/predict`:
+  ```json
+  {
+    "comments": ["This video is awesome"]
+  }
+  ```
+- Returns: List of comments with predicted sentiment.
+
+### Chrome Extension Frontend (`yt-chrome-plugin-frontend/`)
+- Contains `manifest.json`, `popup.html`, and `popup.js` for a Chrome extension UI.
+- Allows users to interact with the Flask API directly from YouTube.
+- See the folder for implementation details.
+---
+---
+
+## Data & Model Artifacts
+- All processed data is in the `data/` folder (raw and interim CSVs).
+- Model artifacts: `lgbm_model.pkl`, `tfidf_vectorizer.pkl`.
+- MLflow experiment tracking: `experiment_info.json`, `dvc.yaml`, `dvc.lock`.
+---
+
+## Project Structure
+
+- `src/`: Data ingestion, preprocessing, model building, evaluation, and registration scripts.
+- `notebooks/`: Jupyter notebooks for EDA, experiments, and model development.
+- `flask_api/`: Flask REST API for serving predictions.
+- `yt-chrome-plugin-frontend/`: Chrome extension for user interaction.
+- `data/`: Raw and processed datasets.
+- `requirements.txt`, `setup.py`: Project dependencies and setup.
 
 ## 1. 1_Preprocessing_&_EDA.ipynb
 
@@ -209,6 +250,6 @@ This project analyzes Reddit comments for sentiment classification using natural
 ---
 
 **Note:**
-- The project uses Python, pandas, scikit-learn, NLTK, seaborn, matplotlib, and MLflow.
+- The project uses Python, pandas, scikit-learn, NLTK, seaborn, matplotlib, MLflow, Flask, and Chrome extension technologies.
 - For MLflow tracking, ensure the tracking server URI is accessible.
-- The workflow can be extended with more advanced models and further analysis.
+- The workflow can be extended with more advanced models, APIs, and frontend features.
