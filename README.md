@@ -21,6 +21,14 @@ Below are screenshots of the Chrome extension and API in action:
   <img src="img (6).png" alt="Demo 6" width="220" style="margin:8px;">
 </div>
 
+### Video Demo
+
+<div align="center">
+  <video src="screenRec.mp4" controls width="480" style="margin:16px 0;">
+    Your browser does not support the video tag.
+  </video>
+</div>
+
 ---
 
 ## API & Frontend Components
