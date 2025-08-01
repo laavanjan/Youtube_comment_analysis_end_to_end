@@ -1,8 +1,26 @@
 
+
 # YouTube Comment Sentiment Analysis: Project Overview
 
-
 This project analyzes YouTube (and Reddit) comments for sentiment classification using natural language processing (NLP) and machine learning techniques. The workflow includes Jupyter notebooks for data science, a Flask API for model serving, and a Chrome extension frontend.
+
+---
+
+## Demo
+
+Below are screenshots of the Chrome extension and API in action:
+
+<div align="center">
+<img src="img (5).png" alt="Main Demo" width="500" style="margin:12px 0;">
+  <br>
+  <img src="img (1).png" alt="Demo 1" width="220" style="margin:8px;">
+  <img src="img (2).png" alt="Demo 2" width="220" style="margin:8px;">
+  <img src="img (3).png" alt="Demo 3" width="220" style="margin:8px;">
+  <img src="img (4).png" alt="Demo 4" width="220" style="margin:8px;">
+  <br>
+  <img src="img (6).png" alt="Demo 6" width="220" style="margin:8px;">
+</div>
+
 ---
 
 ## API & Frontend Components
