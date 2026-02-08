@@ -62,104 +62,6 @@ jobs:
                 
                 self.issues = []
             
-            def analyze_file(self, file_path: str, content: str):
-                file_issues = []
-                try:
-                    tree = ast.parse(content)
-                    file_issues.extend(self._analyze_ast(tree, file_path))
-                except:
-                    pass
-                file_issues.extend(self._analyze_text(content, file_path))
-                self.issues.extend(file_issues)
-                return file_issues
-            
-            def _analyze_ast(self, tree, file_path):
-                issues = []
-                for node in ast.walk(tree):
-                    node_lineno = getattr(node, 'lineno', 1)
-                    if isinstance(node, (ast.Name, ast.FunctionDef, ast.ClassDef)):
-                        name = getattr(node, 'id', getattr(node, 'name', ''))
-                        if name:
-                            issues.extend(self._check_naming_bias(name, node_lineno, file_path))
-                return issues
-            
-            def _analyze_text(self, content, file_path):
-                issues = []
-                lines = content.split('\n')
-                for i, line in enumerate(lines, 1):
-                    for pattern in self.privacy_patterns:
-                        if re.search(pattern, line, re.IGNORECASE):
-                            issues.append(EthicsIssue(
-                                file_path=file_path, line_number=i, issue_type='privacy',
-                                severity='critical', message='Potential hardcoded credential',
-                                suggestion='Use environment variables', code_snippet=line.strip()
-                            ))
-                return issues
-            
-            def _check_naming_bias(self, name, line, file_path):
-                issues = []
-                name_lower = name.lower()
-                for issue_type, terms in self.biased_terms.items():
-                    for term in terms:
-                        if term in name_lower:
-                            issues.append(EthicsIssue(
-                                file_path=file_path, line_number=line, issue_type=issue_type,
-                                severity='medium', message=f'Biased identifier: {name}',
-                                suggestion=f'Avoid {term}', code_snippet=name
-                            ))
-                return issues
-            
-            def generate_report(self):
-                by_type = defaultdict(int)
-                severity_counts = defaultdict(int)
-                for issue in self.issues:
-                    by_type[issue.issue_type] += 1
-                    severity_counts[issue.severity] += 1
-                ethical_score = max(0, 100 - (len(self.issues) * 1.5))
-                return {
-                    'total_issues': len(self.issues),
-                    'ethical_score': round(ethical_score, 1),
-                    'issues_by_severity': dict(severity_counts),
-                    'issues_by_type': dict(by_type),
-                    'issues': self.issues
-                }
-        SCRIPT_END
-    
-        - name: Create Ethics Analyzer Script
-      run: |
-        cat > ethics_analyzer.py << 'SCRIPT_END'
-        import ast
-        import re
-        from collections import defaultdict
-        from typing import Dict, List, Any
-        from dataclasses import dataclass
-
-        @dataclass
-        class EthicsIssue:
-            file_path: str
-            line_number: int
-            issue_type: str
-            severity: str
-            message: str
-            suggestion: str
-            code_snippet: str
-
-        class EthicsAnalyzer:
-            def __init__(self):
-                self.biased_terms = {
-                    'bias': ['blacklist', 'whitelist', 'master', 'slave', 'cripple', 'dummy', 'sanitize'],
-                    'gender': ['he', 'she', 'man', 'woman', 'male', 'female', 'boy', 'girl', 'guys'],
-                    'race': ['white', 'black', 'asian', 'indian', 'native', 'colored'],
-                    'ability': ['blind', 'deaf', 'mute', 'retard', 'insane', 'crazy']
-                }
-                
-                self.privacy_patterns = [
-                    r'(password|pwd|pass)\s*[=:]\s*["\'][^"\']*["\']',
-                    r'(api[_-]?key|secret|token)\s*[=:]\s*["\'][^"\']*["\']',
-                ]
-                
-                self.issues = []
-            
             def analyze_file(self, file_path: str, content: str) -> List[EthicsIssue]:
                 file_issues = []
                 try:
@@ -196,7 +98,7 @@ jobs:
                             issues.append(EthicsIssue(
                                 file_path=file_path, line_number=i, issue_type='privacy',
                                 severity='critical', message='Potential hardcoded credential',
-                                suggestion='Use environment variables', code_snippet=line.strip()
+                                suggestion='Use environment variables', code_snippet=line.strip()[:100]
                             ))
                     
                     if line.strip().startswith('#'):
@@ -214,7 +116,8 @@ jobs:
                             issues.append(EthicsIssue(
                                 file_path=file_path, line_number=line, issue_type=issue_type,
                                 severity='medium', message=f'Biased identifier: {name}',
-                                suggestion=f'Avoid {term}', code_snippet=name
+                                suggestion=f'Avoid "{term}" - use neutral alternatives',
+                                code_snippet=name
                             ))
                 return issues
             
@@ -227,7 +130,7 @@ jobs:
                         if term in text_lower:
                             issues.append(EthicsIssue(
                                 file_path=file_path, line_number=line, issue_type=issue_type,
-                                severity='low', message=f'Biased language: {term}',
+                                severity='low', message=f'Biased language: "{term}"',
                                 suggestion='Use inclusive language',
                                 code_snippet=text[:80] + '...' if len(text) > 80 else text
                             ))
@@ -252,7 +155,118 @@ jobs:
                     'issues': self.issues
                 }
         SCRIPT_END
+    
+    - name: Run Ethics Analysis
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python << 'PYTHON_END'
+        from github import Github, Auth
+        from ethics_analyzer import EthicsAnalyzer
+        import os
+        import json
+        from datetime import datetime
 
+        repo_name = os.environ['GITHUB_REPOSITORY']
+        token = os.environ['GITHUB_TOKEN']
+        
+        auth = Auth.Token(token)
+        g = Github(auth=auth)
+        repo = g.get_repo(repo_name)
+        
+        print(f"🔍 Analyzing {repo_name}...")
+        
+        def get_python_files(repo):
+            files = []
+            contents = repo.get_contents("")
+            while contents:
+                file_content = contents.pop(0)
+                if file_content.type == "dir":
+                    try:
+                        contents.extend(repo.get_contents(file_content.path))
+                    except:
+                        pass
+                elif file_content.name.endswith('.py'):
+                    files.append(file_content)
+                    print(f"  📄 Found: {file_content.path}")
+            return files
+        
+        analyzer = EthicsAnalyzer()
+        py_files = get_python_files(repo)
+        
+        print(f"\n📊 Total Python files found: {len(py_files)}")
+        
+        for file in py_files:
+            print(f"  Analyzing {file.path}...")
+            content = file.decoded_content.decode('utf-8')
+            analyzer.analyze_file(file.path, content)
+        
+        report = analyzer.generate_report()
+        
+        report_json = {
+            'total_issues': report['total_issues'],
+            'ethical_score': report['ethical_score'],
+            'issues_by_severity': report['issues_by_severity'],
+            'issues_by_type': report['issues_by_type'],
+            'issues': [
+                {
+                    'file_path': i.file_path,
+                    'line_number': i.line_number,
+                    'issue_type': i.issue_type,
+                    'severity': i.severity,
+                    'message': i.message,
+                    'suggestion': i.suggestion,
+                    'code_snippet': i.code_snippet
+                } for i in report['issues']
+            ]
+        }
+        
+        with open('ethics_report.json', 'w') as f:
+            json.dump(report_json, f, indent=2)
+        
+        print(f"\n{'='*60}")
+        print(f"📈 ETHICS ANALYSIS RESULTS")
+        print(f"{'='*60}")
+        print(f"Ethics Score: {report['ethical_score']}/100")
+        print(f"Total Issues: {report['total_issues']}")
+        print(f"By Severity: {report['issues_by_severity']}")
+        print(f"By Type: {report['issues_by_type']}")
+        
+        critical = [i for i in report['issues'] if i.severity == 'critical']
+        if critical:
+            issue_title = f"🚨 Ethics Scan: {report['total_issues']} Issues (Score: {report['ethical_score']}/100)"
+            critical_summary = '\n'.join([f"- `{i.file_path}:{i.line_number}` - {i.message}" for i in critical[:10]])
+            
+            issue_body = f"""## 🤖 Automated Ethics Analysis Report
+
+**Scan Date**: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}
+**Repository**: {repo_name}
+**Ethical Score**: {report['ethical_score']}/100
+
+### 📊 Summary
+- **Total Issues**: {report['total_issues']}
+- **Critical**: {len(critical)}
+- **By Severity**: {report['issues_by_severity']}
+- **By Type**: {report['issues_by_type']}
+
+### 🚨 Critical Issues (Top 10)
+{critical_summary}
+
+### ✅ Recommended Actions
+1. Fix critical privacy/security issues immediately
+2. Review and update biased language in comments/strings
+3. Update variable/function names to use inclusive terminology
+4. Re-run the analyzer after fixes
+
+**Note**: Download the full report artifact from the Actions tab for detailed findings.
+"""
+            
+            repo.create_issue(title=issue_title, body=issue_body)
+            print("\n✅ GitHub issue created with critical findings!")
+        else:
+            print("\n✅ No critical issues found!")
+        
+        PYTHON_END
     
     - name: Upload Report
       uses: actions/upload-artifact@v4
