@@ -62,7 +62,7 @@ jobs:
                 
                 self.issues = []
             
-            def analyze_file(self, file_path: str, content: str) -> List[EthicsIssue]:
+            def analyze_file(self, file_path: str, content: str):
                 file_issues = []
                 try:
                     tree = ast.parse(content)
@@ -73,7 +73,7 @@ jobs:
                 self.issues.extend(file_issues)
                 return file_issues
             
-            def _analyze_ast(self, tree: ast.AST, file_path: str) -> List[EthicsIssue]:
+            def _analyze_ast(self, tree, file_path):
                 issues = []
                 for node in ast.walk(tree):
                     node_lineno = getattr(node, 'lineno', 1)
@@ -83,7 +83,7 @@ jobs:
                             issues.extend(self._check_naming_bias(name, node_lineno, file_path))
                 return issues
             
-            def _analyze_text(self, content: str, file_path: str) -> List[EthicsIssue]:
+            def _analyze_text(self, content, file_path):
                 issues = []
                 lines = content.split('\n')
                 for i, line in enumerate(lines, 1):
@@ -96,7 +96,7 @@ jobs:
                             ))
                 return issues
             
-            def _check_naming_bias(self, name: str, line: int, file_path: str) -> List[EthicsIssue]:
+            def _check_naming_bias(self, name, line, file_path):
                 issues = []
                 name_lower = name.lower()
                 for issue_type, terms in self.biased_terms.items():
@@ -109,7 +109,7 @@ jobs:
                             ))
                 return issues
             
-            def generate_report(self) -> Dict[str, Any]:
+            def generate_report(self):
                 by_type = defaultdict(int)
                 severity_counts = defaultdict(int)
                 for issue in self.issues:
@@ -151,15 +151,22 @@ jobs:
             while contents:
                 file_content = contents.pop(0)
                 if file_content.type == "dir":
-                    contents.extend(repo.get_contents(file_content.path))
+                    try:
+                        contents.extend(repo.get_contents(file_content.path))
+                    except:
+                        pass
                 elif file_content.name.endswith('.py'):
                     files.append(file_content)
+                    print(f"  Found: {file_content.path}")
             return files
         
         analyzer = EthicsAnalyzer()
         py_files = get_python_files(repo)
         
+        print(f"\nTotal Python files: {len(py_files)}")
+        
         for file in py_files:
+            print(f"  Analyzing {file.path}...")
             content = file.decoded_content.decode('utf-8')
             analyzer.analyze_file(file.path, content)
         
@@ -168,30 +175,32 @@ jobs:
         with open('ethics_report.json', 'w') as f:
             json.dump(report, f, indent=2, default=str)
         
-        print(f"Ethics Score: {report['ethical_score']}/100")
+        print(f"\nEthics Score: {report['ethical_score']}/100")
         print(f"Total Issues: {report['total_issues']}")
-        print(f"By Severity: {report['issues_by_severity']}")
-        print(f"By Type: {report['issues_by_type']}")
+        print(f"Severity: {report['issues_by_severity']}")
+        print(f"Type: {report['issues_by_type']}")
         
         critical = [i for i in report['issues'] if i.severity == 'critical']
         if critical:
-            issue_title = f"Ethics Scan: {report['total_issues']} Issues (Score: {report['ethical_score']}/100)"
-            critical_summary = '\n'.join([f"- {i.file_path}:{i.line_number} - {i.message}" for i in critical[:10]])
-            issue_body = f"""## Automated Ethics Analysis
-        
+            title = f"Ethics Scan: {report['total_issues']} Issues (Score: {report['ethical_score']}/100)"
+            summary = '\n'.join([f"- {i.file_path}:{i.line_number} - {i.message}" for i in critical[:10]])
+            body = f"""## Automated Ethics Analysis
+
         **Score**: {report['ethical_score']}/100
         **Total Issues**: {report['total_issues']}
         **Critical**: {len(critical)}
-        
+
         ### Critical Issues
-        {critical_summary}
-        
+        {summary}
+
         ### Summary
-        Severity: {report['issues_by_severity']}
-        Type: {report['issues_by_type']}
+        - Severity: {report['issues_by_severity']}
+        - Type: {report['issues_by_type']}
         """
-            repo.create_issue(title=issue_title, body=issue_body)
+            repo.create_issue(title=title, body=body)
             print("GitHub issue created!")
+        else:
+            print("No critical issues!")
         
         PYTHON_END
     
