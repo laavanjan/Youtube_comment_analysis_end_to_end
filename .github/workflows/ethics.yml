@@ -1,0 +1,107 @@
+name: Ethics Code Analyzer
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  ethics-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install PyGithub python-dotenv
+    
+    - name: Download Ethics Analyzer
+      run: |
+        curl -o ethics_analyzer.py https://raw.githubusercontent.com/laavanjan/ethics-analyzer/main/ethics_analyzer.py
+        curl -o github_connector_action.py https://raw.githubusercontent.com/laavanjan/ethics-analyzer/main/github_connector.py
+    
+    - name: Run Ethics Analysis
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cat > run_analysis.py << 'EOF'
+        from github import Github, Auth
+        from ethics_analyzer import EthicsAnalyzer
+        import os
+        import json
+        from datetime import datetime
+
+        repo_name = os.environ['GITHUB_REPOSITORY']
+        token = os.environ['GITHUB_TOKEN']
+        
+        auth = Auth.Token(token)
+        g = Github(auth=auth)
+        repo = g.get_repo(repo_name)
+        
+        print(f"Analyzing {repo_name}...")
+        
+        def get_python_files(repo):
+            files = []
+            contents = repo.get_contents("")
+            while contents:
+                file_content = contents.pop(0)
+                if file_content.type == "dir":
+                    contents.extend(repo.get_contents(file_content.path))
+                elif file_content.name.endswith('.py'):
+                    files.append(file_content)
+            return files
+        
+        analyzer = EthicsAnalyzer()
+        py_files = get_python_files(repo)
+        
+        for file in py_files:
+            content = file.decoded_content.decode('utf-8')
+            analyzer.analyze_file(file.path, content)
+        
+        report = analyzer.generate_report()
+        
+        with open('ethics_report.json', 'w') as f:
+            json.dump(report, f, indent=2, default=str)
+        
+        print(f"\n{'='*60}")
+        print(f"Ethics Score: {report['ethical_score']}/100")
+        print(f"Total Issues: {report['total_issues']}")
+        print(f"By Severity: {report['issues_by_severity']}")
+        print(f"By Type: {report['issues_by_type']}")
+        
+        critical = [i for i in report['issues'] if i.severity == 'critical']
+        if critical:
+            issue_title = f"🚨 Ethics Scan: {report['total_issues']} Issues (Score: {report['ethical_score']}/100)"
+            issue_body = f"""## 🤖 Automated Ethics Analysis
+
+**Scan Date**: {datetime.now().strftime('%Y-%m-%d %H:%M')}
+**Score**: {report['ethical_score']}/100
+**Total Issues**: {report['total_issues']}
+**Critical**: {len(critical)}
+
+### 🚨 Critical Issues
+{chr(10).join([f"- {i.file_path}:{i.line_number} - {i.message}" for i in critical[:10]])}"""
+            repo.create_issue(title=issue_title, body=issue_body)
+            print("✅ GitHub issue created!")
+        
+        EOF
+        python run_analysis.py
+    
+    - name: Upload Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ethics-report
+        path: ethics_report.json
