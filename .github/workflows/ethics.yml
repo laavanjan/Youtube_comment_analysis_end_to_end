@@ -156,7 +156,7 @@ jobs:
                 }
         SCRIPT_END
     
-    - name: Run Ethics Analysis
+        - name: Run Ethics Analysis
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -234,30 +234,27 @@ jobs:
         
         critical = [i for i in report['issues'] if i.severity == 'critical']
         if critical:
+            scan_date = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
             issue_title = f"🚨 Ethics Scan: {report['total_issues']} Issues (Score: {report['ethical_score']}/100)"
-            critical_summary = '\n'.join([f"- `{i.file_path}:{i.line_number}` - {i.message}" for i in critical[:10]])
+            critical_list = '\n'.join([f"- `{i.file_path}:{i.line_number}` - {i.message}" for i in critical[:10]])
             
             issue_body = "## 🤖 Automated Ethics Analysis Report\n\n"
-            issue_body += f"**Scan Date**: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}\n"
+            issue_body += f"**Scan Date**: {scan_date}\n"
             issue_body += f"**Repository**: {repo_name}\n"
             issue_body += f"**Ethical Score**: {report['ethical_score']}/100\n\n"
-        ### 📊 Summary
-            - **Total Issues**: {report['total_issues']}
-            - **Critical**: {len(critical)}
-            - **By Severity**: {report['issues_by_severity']}
-            - **By Type**: {report['issues_by_type']}
-
-        ### 🚨 Critical Issues (Top 10)
-        {critical_summary}
-
-        ### ✅ Recommended Actions
-        1. Fix critical privacy/security issues immediately
-        2. Review and update biased language in comments/strings
-        3. Update variable/function names to use inclusive terminology
-        4. Re-run the analyzer after fixes
-
-        **Note**: Download the full report artifact from the Actions tab for detailed findings.
-        """
+            issue_body += "### 📊 Summary\n"
+            issue_body += f"- **Total Issues**: {report['total_issues']}\n"
+            issue_body += f"- **Critical**: {len(critical)}\n"
+            issue_body += f"- **By Severity**: {report['issues_by_severity']}\n"
+            issue_body += f"- **By Type**: {report['issues_by_type']}\n\n"
+            issue_body += "### 🚨 Critical Issues (Top 10)\n"
+            issue_body += critical_list + "\n\n"
+            issue_body += "### ✅ Recommended Actions\n"
+            issue_body += "1. Fix critical privacy/security issues immediately\n"
+            issue_body += "2. Review and update biased language in comments/strings\n"
+            issue_body += "3. Update variable/function names to use inclusive terminology\n"
+            issue_body += "4. Re-run the analyzer after fixes\n\n"
+            issue_body += "**Note**: Download the full report artifact from the Actions tab for detailed findings.\n"
             
             repo.create_issue(title=issue_title, body=issue_body)
             print("\n✅ GitHub issue created with critical findings!")
@@ -265,6 +262,7 @@ jobs:
             print("\n✅ No critical issues found!")
         
         PYTHON_END
+
     
     - name: Upload Report
       uses: actions/upload-artifact@v4
